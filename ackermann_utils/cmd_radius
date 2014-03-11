@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+
+import rospy
+from geometry_msgs.msg import Twist
+
+def main():
+    rospy.init("cmd_radius")
+    min_radius = rospy.get_param("~min_radius")
+
+    cmd_pub = rospy.Publisher("cmd_vel", Twist)
+
+    def cmd_cb(twist):
+        # l = angle * radius
+        # angle = l / radius
+        max_rot = twist.linear.x / min_radius
+        twist.angular.z = min(max_rot, twist.angular.z)
+        cmd_pub.publish(twist)
+
+    rospy.Subscriber("cmd_in", Twist, cmd_cb)
+
+    rospy.spin()
+
+if __name__ == '__main__':
+    main()
