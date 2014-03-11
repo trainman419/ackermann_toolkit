@@ -4,16 +4,21 @@ import rospy
 from geometry_msgs.msg import Twist
 
 def main():
-    rospy.init("cmd_radius")
+    rospy.init_node("cmd_radius")
     min_radius = rospy.get_param("~min_radius")
 
-    cmd_pub = rospy.Publisher("cmd_vel", Twist)
+    cmd_pub = rospy.Publisher("cmd_out", Twist)
 
     def cmd_cb(twist):
         # l = angle * radius
         # angle = l / radius
-        max_rot = twist.linear.x / min_radius
-        twist.angular.z = min(max_rot, twist.angular.z)
+        max_rot = abs(twist.linear.x / min_radius)
+        if abs(twist.angular.z) > max_rot:
+            if twist.angular.z > 0:
+                twist.angular.z = max_rot
+            else:
+                twist.angular.z = -max_rot
+
         cmd_pub.publish(twist)
 
     rospy.Subscriber("cmd_in", Twist, cmd_cb)
